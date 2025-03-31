@@ -1,27 +1,44 @@
 from flask import Flask, render_template, request, redirect
-import mysql.connector
+import mysql.connector# sudo -E venv/bin/python3 app.py(-E is used due to )
 
 app = Flask(__name__)
 
 # MySQL Connection (Using auth_socket)
-try:
+try:  
     db = mysql.connector.connect(
         host="localhost",
         user="root",
-        unix_socket="/var/run/mysqld/mysqld.sock",  # Update this if necessary
+        unix_socket="/var/run/mysqld/mysqld.sock",  # Update if necessary
         database="hospital_db"
     )
-    cursor = db.cursor()
 except mysql.connector.Error as err:
     print(f"Error: {err}")
     exit(1)
 
 @app.route('/')
 def home():
-    cursor.execute("SELECT * FROM Patients")
-    patients = cursor.fetchall()
-    return render_template('index.html', patients=patients)
+    with db.cursor() as cursor:
+        # Fetch Patients
+        cursor.execute("SELECT * FROM Patients")
+        patients = cursor.fetchall()
 
+        # Fetch Doctors
+        cursor.execute("SELECT * FROM Doctors")
+        doctors = cursor.fetchall()
+
+        # Fetch Appointments with correct table casing
+        cursor.execute("""
+            SELECT Appointments.appointment_id, Patients.name, Doctors.name, 
+                   Appointments.appointment_date, Appointments.status
+            FROM Appointments 
+            JOIN Patients ON Appointments.patient_id = Patients.patient_id
+            JOIN Doctors ON Appointments.doctor_id = Doctors.doctor_id
+        """)
+        appointments = cursor.fetchall()
+
+    return render_template('index.html', patients=patients, doctors=doctors, appointments=appointments)
+
+# Add Patient
 @app.route('/add_patient', methods=['POST'])
 def add_patient():
     name = request.form['name']
@@ -29,10 +46,12 @@ def add_patient():
     gender = request.form['gender']
     disease = request.form['disease']
 
-    cursor.execute("INSERT INTO Patients (name, age, gender, disease) VALUES (%s, %s, %s, %s)", 
-                   (name, age, gender, disease))
-    db.commit()
+    with db.cursor() as cursor:
+        cursor.execute("INSERT INTO Patients (name, age, gender, disease) VALUES (%s, %s, %s, %s)", 
+                       (name, age, gender, disease))
+        db.commit()
     return redirect('/')
+
 # Add Doctor
 @app.route('/add_doctor', methods=['POST'])
 def add_doctor():
@@ -41,9 +60,10 @@ def add_doctor():
     phone = request.form['phone']
     email = request.form['email']
 
-    cursor.execute("INSERT INTO Doctors (name, specialty, phone, email) VALUES (%s, %s, %s, %s)",
-                   (name, specialty, phone, email))
-    db.commit()
+    with db.cursor() as cursor:
+        cursor.execute("INSERT INTO Doctors (name, specialty, phone, email) VALUES (%s, %s, %s, %s)",
+                       (name, specialty, phone, email))
+        db.commit()
     return redirect('/')
 
 # Schedule Appointment
@@ -54,12 +74,13 @@ def add_appointment():
     appointment_date = request.form['appointment_date']
     status = "Scheduled"
 
-    cursor.execute("INSERT INTO Appointments (patient_id, doctor_id, appointment_date, status) VALUES (%s, %s, %s, %s)",
-                   (patient_id, doctor_id, appointment_date, status))
-    db.commit()
+    with db.cursor() as cursor:
+        cursor.execute("INSERT INTO Appointments (patient_id, doctor_id, appointment_date, status) VALUES (%s, %s, %s, %s)",
+                       (patient_id, doctor_id, appointment_date, status))
+        db.commit()
     return redirect('/')
 
-# Payment
+# Add Payment
 @app.route('/add_payment', methods=['POST'])
 def add_payment():
     patient_id = request.form['patient_id']
@@ -67,9 +88,10 @@ def add_payment():
     status = request.form['status']
     payment_method = request.form['payment_method']
 
-    cursor.execute("INSERT INTO Billing (patient_id, amount, status, payment_method) VALUES (%s, %s, %s, %s)",
-                   (patient_id, amount, status, payment_method))
-    db.commit()
+    with db.cursor() as cursor:
+        cursor.execute("INSERT INTO Billing (patient_id, amount, status, payment_method) VALUES (%s, %s, %s, %s)",
+                       (patient_id, amount, status, payment_method))
+        db.commit()
     return redirect('/')
 
 if __name__ == '__main__':

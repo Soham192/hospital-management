@@ -4,6 +4,7 @@
     <title>Hospital Management System</title>
 </head>
 <body>
+
     <h2>Patients List</h2>
     <table border="1">
         <tr><th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Phone</th><th>Address</th><th>Disease</th></tr>
@@ -53,6 +54,42 @@
         <input type="email" name="email" placeholder="Email" required>
         <button type="submit">Add</button>
     </form>
+
+    <h2>Schedule Appointment</h2>
+    <form method="POST" action="/add_appointment">
+        <label for="patient_id">Select Patient:</label>
+        <select name="patient_id" required>
+            {% for patient in patients %}
+            <option value="{{ patient[0] }}">{{ patient[1] }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="doctor_id">Select Doctor:</label>
+        <select name="doctor_id" required>
+            {% for doctor in doctors %}
+            <option value="{{ doctor[0] }}">{{ doctor[1] }} ({{ doctor[2] }})</option>
+            {% endfor %}
+        </select>
+
+        <label for="appointment_date">Appointment Date:</label>
+        <input type="datetime-local" name="appointment_date" required>
+
+        <button type="submit">Schedule</button>
+    </form>
+
+    <h2>Appointments</h2>
+    <table border="1">
+        <tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Status</th></tr>
+        {% for appointment in appointments %}
+        <tr>
+            <td>{{ appointment[0] }}</td>
+            <td>{{ appointment[1] }}</td>
+            <td>{{ appointment[2] }}</td>
+            <td>{{ appointment[3] }}</td>
+            <td>{{ appointment[4] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 
 </body>
 </html>

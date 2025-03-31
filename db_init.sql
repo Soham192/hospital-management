@@ -1,5 +1,7 @@
 CREATE DATABASE hospital_db;
 USE hospital_db;
+--command to execute the whole file a once SOURCE path to you sql file
+--mysql -u root -p hospital_db < your_file.sql 
 
 -- Patients Table
 CREATE TABLE Patients (
@@ -21,17 +23,18 @@ CREATE TABLE Doctors (
     email VARCHAR(100)
 );
 
--- Appointments Table
+-- Appointments Table (Fixed Version)
 CREATE TABLE Appointments (
     appointment_id INT AUTO_INCREMENT PRIMARY KEY,
     patient_id INT,
     doctor_id INT,
     appointment_date DATETIME,
-    status ENUM('Scheduled', 'Completed', 'Cancelled'),
-    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
-    FOREIGN KEY (doctor_id) REFERENCES Doctors(doctor_id)
+    status VARCHAR(20) DEFAULT 'Scheduled',
+    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id) ON DELETE CASCADE,
+    FOREIGN KEY (doctor_id) REFERENCES Doctors(doctor_id) ON DELETE CASCADE
 );
 
+-- Billing Table
 CREATE TABLE Billing (
     bill_id INT AUTO_INCREMENT PRIMARY KEY,
     patient_id INT,
