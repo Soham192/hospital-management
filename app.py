@@ -89,10 +89,34 @@ def add_payment():
     payment_method = request.form['payment_method']
 
     with db.cursor() as cursor:
-        cursor.execute("INSERT INTO Billing (patient_id, amount, status, payment_method) VALUES (%s, %s, %s, %s)",
+        cursor.execute("INSERT INTO Billing (patient_id, amount, status, payment_method) VALUES (%s, %s, %s, %s)",# %s is used to prevent sql injection attacks
                        (patient_id, amount, status, payment_method))
         db.commit()
     return redirect('/')
+@app.route('/reschedule_appointment', methods=['POST'])
+def reschedule_appointment():
+    patient_id = request.form['patient_id']
+    doctor_id = request.form['doctor_id']
+    old_appointment_date = request.form['old_appointment_date']
+    new_appointment_date = request.form['new_appointment_date']
+
+    with db.cursor() as cursor:
+        # Delete old appointment
+        cursor.execute(
+            "DELETE FROM Appointments WHERE patient_id = %s AND doctor_id = %s AND appointment_date = %s",
+            (patient_id, doctor_id, old_appointment_date)
+        )
+
+        # Insert new appointment
+        cursor.execute(
+            "INSERT INTO Appointments (patient_id, doctor_id, appointment_date, status) VALUES (%s, %s, %s, %s)",
+            (patient_id, doctor_id, new_appointment_date, "Scheduled")
+        )
+
+        db.commit()
+
+    return redirect('/')
+
 
 if __name__ == '__main__':
     app.run(debug=True)

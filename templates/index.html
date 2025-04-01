@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+\<!DOCTYPE html>
 <html>
 <head>
     <title>Hospital Management System</title>
@@ -90,6 +90,31 @@
         </tr>
         {% endfor %}
     </table>
+
+    <h2>Reschedule Appointment</h2>
+    <form method="POST" action="/reschedule_appointment">
+        <label for="patient_id">Select Patient:</label>
+        <select name="patient_id" required>
+            {% for patient in patients %}
+            <option value="{{ patient[0] }}">{{ patient[1] }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="doctor_id">Select Doctor:</label>
+        <select name="doctor_id" required>
+            {% for doctor in doctors %}
+            <option value="{{ doctor[0] }}">{{ doctor[1] }} ({{ doctor[2] }})</option>
+            {% endfor %}
+        </select>
+
+        <label for="old_appointment_date">Old Appointment Date:</label>
+        <input type="datetime-local" name="old_appointment_date" required>
+
+        <label for="new_appointment_date">New Appointment Date:</label>
+        <input type="datetime-local" name="new_appointment_date" required>
+
+        <button type="submit">Reschedule</button>
+    </form>
 
 </body>
 </html>
